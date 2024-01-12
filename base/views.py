@@ -4,6 +4,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import *
 from .serializers import AdvocateSerializer
+from rest_framework.views import APIView
 from django.db.models import Q
 
 
@@ -39,28 +40,60 @@ def advocates_list(request):
      serializer = AdvocateSerializer(advocate, many=False)
 
      return Response(serializer.data)    
+  
 
 
-@api_view(['GET', 'PUT', 'DELETE'])
-def advocates_details(request, username): 
-    advocate = Advocate.objects.get(username=username)
+class AdvocateDetail(APIView):
 
-    if request.method == 'GET':              
+   def get_object(self, pk):
+        try:
+            return Snippet.objects.get(pk=pk)
+        except Snippet.DoesNotExist:
+            raise Http404
+
+
+   def get(self, request, username):
+      advocate =self.get_object(username)
       serializer = AdvocateSerializer(advocate, many= False)
       return Response(serializer.data)
+
+
+
+   def put(self, request, username):
+      advocate = self.get_object(username)
+      advocate.username = request.data['username']
+      advocate.bio = request.data['bio']
+      serializer = AdvocateSerializer(advocate, many= False)
+      return Response(serializer.data)
+   
+   def delete(self, request, username):
+      advocate = self.get_object(username)
+      advocate.delete()
+      return redirect('user was deleted')
+
+
+
+
+# @api_view(['GET', 'PUT', 'DELETE'])
+# def advocates_details(request, username): 
+#     advocate = Advocate.objects.get(username=username)
+
+#     if request.method == 'GET':              
+#       serializer = AdvocateSerializer(advocate, many= False)
+#       return Response(serializer.data)
     
-    if request.method == 'PUT':
-       advocate.username = request.data['username']
-       advocate.bio = request.data['bio']
+#     if request.method == 'PUT':
+#        advocate.username = request.data['username']
+#        advocate.bio = request.data['bio']
 
-       advocate.save()
+#        advocate.save()
 
-       serializer = AdvocateSerializer(advocate, many= False)
-       return Response(serializer.data)
+#        serializer = AdvocateSerializer(advocate, many= False)
+#        return Response(serializer.data)
 
-    if request.method == 'DELETE':
-       advocate.delete()
-       return redirect('user was deleted')
+#     if request.method == 'DELETE':
+#        advocate.delete()
+#        return redirect('user was deleted')
 
           
 
